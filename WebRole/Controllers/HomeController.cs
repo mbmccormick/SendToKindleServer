@@ -13,21 +13,6 @@ namespace WebRole.Controllers
     {
         public ActionResult Index()
         {
-            // Simply redirect to Submit, since Submit will serve as the
-            // front page of this application
-            return RedirectToAction("Submit");
-        }
-
-        public ActionResult About()
-        {
-            return View();
-        }
-
-        // GET: /Home/Submit
-        // Controller method for a view you will create for the submission
-        // form
-        public ActionResult Submit()
-        {
             // Get a NamespaceManager which allows you to perform management and
             // diagnostic operations on your Service Bus Queues.
             var namespaceManager = QueueConnector.CreateNamespaceManager();
@@ -38,15 +23,10 @@ namespace WebRole.Controllers
 
             return View();
         }
-
-        // POST: /Home/Submit
-        // Controller method for handling submissions from the submission
-        // form 
+                
         [HttpPost]
-        // Attribute to help prevent cross-site scripting attacks and 
-        // cross-site request forgery  
         [ValidateAntiForgeryToken]
-        public ActionResult Submit(KindleDocument document)
+        public ActionResult Index(KindleDocument document)
         {
             if (ModelState.IsValid)
             {
@@ -55,7 +35,7 @@ namespace WebRole.Controllers
 
                 // Submit the order
                 QueueConnector.SendToKindleServerClient.Send(message);
-                return RedirectToAction("Submit");
+                return RedirectToAction("Index");
             }
             else
             {
