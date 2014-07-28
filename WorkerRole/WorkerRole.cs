@@ -45,10 +45,10 @@ namespace WorkerRole
                 {
                     Trace.TraceInformation("Processing " + message.SequenceNumber.ToString());
 
+                    KindleDocument data = message.GetBody<KindleDocument>();
+
                     try
                     {
-                        KindleDocument data = message.GetBody<KindleDocument>();
-
                         Trace.TraceInformation("Parsing document");
                         var response = ParseUrl(data.URL);
 
@@ -63,7 +63,7 @@ namespace WorkerRole
                         File.WriteAllBytes(filename, document);
 
                         Trace.TraceInformation("Sending file to Kindle");
-                        SendToEmail(data.EmailAddress, filename);
+                        SendToKindle(data.EmailAddress, filename);
 
                         // Remove message from queue
                         message.Complete();
@@ -76,6 +76,15 @@ namespace WorkerRole
 
                         // Indicate a problem, unlock message in queue
                         message.Complete(); // message.Abandon();
+
+                        try
+                        {
+                            SendErrorEmail(data.EmailAddress);
+                        }
+                        catch (Exception)
+                        {
+                            // do nothing
+                        }
                     }
                 }
 
@@ -182,9 +191,13 @@ namespace WorkerRole
             return filename;
         }
 
-        private void SendToEmail(string emailAddress, string filePath)
+        private void SendToKindle(string emailAddress, string filePath)
         {
-            MailMessage message = new MailMessage("sendtokindle@mbmccormick.com", emailAddress, "convert", "Document sent using Sent To Kindle for Windows Phone.");
+            string subject = "Send To Kindle - Conversion Succeeded";
+            if (emailAddress.EndsWith("@kindle.com") == true)
+                subject = "convert";
+
+            MailMessage message = new MailMessage("sendtokindle@mbmccormick.com", emailAddress, subject, "Document sent using Send To Kindle for Windows Phone. Check it out at http://sendtokindle.cloudapp.net.");
 
             // Create  the file attachment for this e-mail message.
             Attachment data = new Attachment(filePath, MediaTypeNames.Application.Octet);
@@ -207,33 +220,25 @@ namespace WorkerRole
 
             client.Credentials = new NetworkCredential(username, password);
 
-            try
-            {
-                client.Send(message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception caught in CreateMessageWithAttachment(): {0}", ex.ToString());
-            }
-
-            // Display the values in the ContentDisposition for the attachment.
-            ContentDisposition cd = data.ContentDisposition;
-            Console.WriteLine("Content disposition");
-            Console.WriteLine(cd.ToString());
-            Console.WriteLine("File {0}", cd.FileName);
-            Console.WriteLine("Size {0}", cd.Size);
-            Console.WriteLine("Creation {0}", cd.CreationDate);
-            Console.WriteLine("Modification {0}", cd.ModificationDate);
-            Console.WriteLine("Read {0}", cd.ReadDate);
-            Console.WriteLine("Inline {0}", cd.Inline);
-            Console.WriteLine("Parameters: {0}", cd.Parameters.Count);
-
-            foreach (DictionaryEntry d in cd.Parameters)
-            {
-                Console.WriteLine("{0} = {1}", d.Key, d.Value);
-            }
+            client.Send(message);
 
             data.Dispose();
+        }
+
+        private void SendErrorEmail(string emailAddress)
+        {
+            MailMessage message = new MailMessage("sendtokindle@mbmccormick.com", emailAddress, "Send To Kindle - Conversion Failed", "We're sorry, but the website you submitted could not be converted to Kindle format. Please try your submission again at http://sendtokindle.cloudapp.net.");
+
+            //Send the message.
+            SmtpClient client = new SmtpClient("smtp.sendgrid.net");
+
+            // Add credentials if the SMTP server requires them.
+            string username = CloudConfigurationManager.GetSetting("SendGridUsername");
+            string password = CloudConfigurationManager.GetSetting("SendGridPassword");
+
+            client.Credentials = new NetworkCredential(username, password);
+
+            client.Send(message);
         }
 
         #endregion
