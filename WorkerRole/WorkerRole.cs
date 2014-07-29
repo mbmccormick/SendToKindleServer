@@ -1,19 +1,14 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
 using System.Threading;
-using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using TuesPechkin;
 using WorkerRole.Models;
@@ -21,11 +16,7 @@ using WorkerRole.Models;
 namespace WorkerRole
 {
     public class WorkerRole : RoleEntryPoint
-    {
-        // The name of your queue
-        const string QueueName = "sendtoreader";
-        QueueClient Client;
-
+    {        
         #region Windows Azure
 
         public override void Run()
@@ -38,13 +29,13 @@ namespace WorkerRole
                 Thread.Sleep(10000);
                 Trace.TraceInformation("Waking up");
 
-                BrokeredMessage message = Client.Receive();
+                BrokeredMessage message = QueueConnector.QueueClient.Receive();
 
                 if (message != null)
                 {
                     Trace.TraceInformation("Processing " + message.SequenceNumber.ToString());
 
-                    KindleDocument data = message.GetBody<KindleDocument>();
+                    ReaderDocument data = message.GetBody<ReaderDocument>();
 
                     try
                     {
@@ -96,17 +87,7 @@ namespace WorkerRole
             // Set the maximum number of concurrent connections 
             ServicePointManager.DefaultConnectionLimit = 12;
 
-            string connectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
-
-            var namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
-
-            if (!namespaceManager.QueueExists(QueueName))
-            {
-                namespaceManager.CreateQueue(QueueName);
-            }
-
-            // Initialize the connection to Service Bus Queue
-            Client = QueueClient.CreateFromConnectionString(connectionString, QueueName);
+            QueueConnector.Initialize();
 
             return base.OnStart();
         }

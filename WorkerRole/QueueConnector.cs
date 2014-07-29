@@ -3,10 +3,11 @@ using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure;
 
-namespace WebRole
+namespace WorkerRole
 {
     public static class QueueConnector
     {
+        public static QueueDescription Queue;
         public static QueueClient QueueClient;
 
         public static NamespaceManager CreateNamespaceManager()
@@ -26,25 +27,13 @@ namespace WebRole
 
             if (Debugger.IsAttached)
             {
+                Queue = namespaceManager.GetQueue("sendtoreader-dev");
                 QueueClient = messagingFactory.CreateQueueClient("sendtoreader-dev");
             }
             else
             {
+                Queue = namespaceManager.GetQueue("sendtoreader");
                 QueueClient = messagingFactory.CreateQueueClient("sendtoreader");
-            }
-        }
-
-        public static QueueDescription GetQueue()
-        {
-            var namespaceManager = QueueConnector.CreateNamespaceManager();
-
-            if (Debugger.IsAttached)
-            {
-                return namespaceManager.GetQueue("sendtoreader-dev");
-            }
-            else
-            {
-                return namespaceManager.GetQueue("sendtoreader");
             }
         }
     }
