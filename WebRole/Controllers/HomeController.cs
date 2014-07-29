@@ -25,7 +25,6 @@ namespace WebRole.Controllers
         }
                 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public ActionResult Index(KindleDocument document)
         {
             if (ModelState.IsValid)
@@ -34,7 +33,7 @@ namespace WebRole.Controllers
                 var message = new BrokeredMessage(document);
 
                 // Submit the order
-                QueueConnector.SendToKindleServerClient.Send(message);
+                QueueConnector.sendtoreaderClient.Send(message);
                 return RedirectToAction("Index");
             }
             else

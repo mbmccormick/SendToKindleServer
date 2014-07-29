@@ -12,7 +12,6 @@ using System.Threading;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
@@ -24,7 +23,7 @@ namespace WorkerRole
     public class WorkerRole : RoleEntryPoint
     {
         // The name of your queue
-        const string QueueName = "SendToKindleServer";
+        const string QueueName = "sendtoreader";
         QueueClient Client;
 
         #region Windows Azure
@@ -197,7 +196,7 @@ namespace WorkerRole
             if (emailAddress.EndsWith("@kindle.com") == true)
                 subject = "convert";
 
-            MailMessage message = new MailMessage("converter@sendtokindle.cloudapp.net", emailAddress, subject, "Document sent using Send To Kindle for Windows Phone. Check it out at http://sendtokindle.cloudapp.net.");
+            MailMessage message = new MailMessage("kindle@sendtoreader.cloudapp.net", emailAddress, subject, "Document sent using Send To Kindle for Windows Phone. Check it out at http://sendtokindle.cloudapp.net.");
 
             // Create  the file attachment for this e-mail message.
             Attachment data = new Attachment(filePath, MediaTypeNames.Application.Octet);
@@ -227,7 +226,7 @@ namespace WorkerRole
 
         private void SendErrorEmail(string emailAddress)
         {
-            MailMessage message = new MailMessage("converter@sendtokindle.cloudapp.net", emailAddress, "Send To Kindle - Conversion Failed", "We're sorry, but the website you submitted could not be converted to Kindle format. Please try your submission again at http://sendtokindle.cloudapp.net.");
+            MailMessage message = new MailMessage("kindle@sendtoreader.cloudapp.net", emailAddress, "Send To Kindle - Conversion Failed", "We're sorry, but the website you submitted could not be converted to Kindle format. Please try your submission again at http://sendtokindle.cloudapp.net.");
 
             //Send the message.
             SmtpClient client = new SmtpClient("smtp.sendgrid.net");

@@ -4,8 +4,8 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>2.2</ProductVersion>
-    <ProjectGuid>7cc4eee7-6cb1-486c-9edf-69002aad39a2</ProjectGuid>
+    <ProductVersion>2.3</ProductVersion>
+    <ProjectGuid>983c6d1c-fd96-49e3-978a-a87ed665e10e</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>WindowsAzure</RootNamespace>
@@ -39,14 +39,12 @@
   <ItemGroup>
     <ProjectReference Include="..\WebRole\WebRole.csproj">
       <Name>WebRole</Name>
-      <Project>{CE14537D-696E-493D-935B-08FE562BD7C7}</Project>
+      <Project>{ce14537d-696e-493d-935b-08fe562bd7c7}</Project>
       <Private>True</Private>
       <RoleType>Web</RoleType>
       <RoleName>WebRole</RoleName>
       <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\WorkerRole\WorkerRole.csproj">
       <Name>WorkerRole</Name>
       <Project>{6d96f5bc-dad6-4423-868d-fcb687ee6c43}</Project>
@@ -70,12 +68,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PublishProfile Include="Profiles\SendToKindleProduction.azurePubxml" />
+    <PublishProfile Include="Profiles\sendtoreaderProduction.azurePubxml" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
-    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.2\</CloudExtensionsDir>
+    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.3\</CloudExtensionsDir>
   </PropertyGroup>
   <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
 </Project>

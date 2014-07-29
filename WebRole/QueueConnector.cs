@@ -12,10 +12,10 @@ namespace WebRole
     {
         // Thread-safe. Recommended that you cache rather than recreating it
         // on every request.
-        public static QueueClient SendToKindleServerClient;
+        public static QueueClient sendtoreaderClient;
 
         // The name of your queue
-        public const string QueueName = "SendToKindleServer";
+        public const string QueueName = "sendtoreader";
 
         public static NamespaceManager CreateNamespaceManager()
         {
@@ -47,7 +47,7 @@ namespace WebRole
             var messagingFactory = MessagingFactory.Create(
                 namespaceManager.Address,
                 namespaceManager.Settings.TokenProvider);
-            SendToKindleServerClient = messagingFactory.CreateQueueClient("SendToKindleServer");
+            sendtoreaderClient = messagingFactory.CreateQueueClient("sendtoreader");
         }
     }
 }

@@ -9,7 +9,7 @@ namespace WorkerRole.Models
 {
     public class KindleDocument
     {
-        [DisplayName("URL")]
+        [DisplayName("Website URL")]
         public string URL { get; set; }
         [DisplayName("Email Address")]
         public string EmailAddress { get; set; }
