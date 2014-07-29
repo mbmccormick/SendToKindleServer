@@ -16,17 +16,16 @@ using WorkerRole.Models;
 namespace WorkerRole
 {
     public class WorkerRole : RoleEntryPoint
-    {        
+    {
         #region Windows Azure
 
         public override void Run()
         {
-            // This is a sample worker implementation. Replace with your logic.
             Trace.TraceInformation("WorkerRole entry point called");
 
             while (true)
             {
-                Thread.Sleep(10000);
+                Thread.Sleep(15000);
                 Trace.TraceInformation("Waking up");
 
                 BrokeredMessage message = QueueConnector.QueueClient.Receive();
@@ -34,7 +33,6 @@ namespace WorkerRole
                 if (message != null)
                 {
                     Trace.TraceInformation("Processing " + message.SequenceNumber.ToString());
-
                     ReaderDocument data = message.GetBody<ReaderDocument>();
 
                     try
@@ -53,28 +51,21 @@ namespace WorkerRole
                         File.WriteAllBytes(filename, document);
 
                         Trace.TraceInformation("Sending file to Kindle");
-                        SendToKindle(data.EmailAddress, filename);
+                        SendEmailToReader(data, filename);
 
-                        // Remove message from queue
                         message.Complete();
 
-                        Trace.TraceInformation("Done");
+                        Trace.TraceInformation("Completed success");
                     }
                     catch (Exception ex)
                     {
                         Trace.TraceError(ex.Message);
-
-                        // Indicate a problem, unlock message in queue
                         message.Complete(); // message.Abandon();
 
-                        try
-                        {
-                            SendErrorEmail(data.EmailAddress);
-                        }
-                        catch (Exception)
-                        {
-                            // do nothing
-                        }
+                        Trace.TraceWarning("Sending error message to user");
+                        SendErrorEmail(data);
+
+                        Trace.TraceWarning("Completed failure");
                     }
                 }
 
@@ -94,7 +85,7 @@ namespace WorkerRole
 
         #endregion
 
-        #region Send To Kindle Server
+        #region Send To Reader Server
 
         private ParseResponse ParseUrl(string url)
         {
@@ -171,30 +162,19 @@ namespace WorkerRole
             return filename;
         }
 
-        private void SendToKindle(string emailAddress, string filePath)
+        private void SendEmailToReader(ReaderDocument data, string path)
         {
             string subject = "Send To Reader - Conversion Succeeded";
-            if (emailAddress.EndsWith("@kindle.com") == true)
+            if (data.EmailAddress.EndsWith("@kindle.com") == true)
                 subject = "convert";
 
-            MailMessage message = new MailMessage("kindle@sendtoreader.cloudapp.net", emailAddress, subject, "Document sent using Send To Reader for Windows Phone. Check it out at http://sendtoreader.cloudapp.net.");
+            MailMessage message = new MailMessage("Send To Reader <kindle@sendtoreader.cloudapp.net>", data.EmailAddress, subject, data.URL + "\n\nDocument sent using Send To Reader for Windows Phone. Check it out at http://sendtoreader.cloudapp.net.");
 
-            // Create  the file attachment for this e-mail message.
-            Attachment data = new Attachment(filePath, MediaTypeNames.Application.Octet);
+            Attachment file = new Attachment(path, MediaTypeNames.Application.Octet);
+            message.Attachments.Add(file);
 
-            // Add time stamp information for the file.
-            ContentDisposition disposition = data.ContentDisposition;
-            disposition.CreationDate = System.IO.File.GetCreationTime(filePath);
-            disposition.ModificationDate = System.IO.File.GetLastWriteTime(filePath);
-            disposition.ReadDate = System.IO.File.GetLastAccessTime(filePath);
-
-            // Add the file attachment to this e-mail message.
-            message.Attachments.Add(data);
-
-            //Send the message.
             SmtpClient client = new SmtpClient("smtp.sendgrid.net");
 
-            // Add credentials if the SMTP server requires them.
             string username = CloudConfigurationManager.GetSetting("SendGridUsername");
             string password = CloudConfigurationManager.GetSetting("SendGridPassword");
 
@@ -202,17 +182,17 @@ namespace WorkerRole
 
             client.Send(message);
 
-            data.Dispose();
+            file.Dispose();
         }
 
-        private void SendErrorEmail(string emailAddress)
+        private void SendErrorEmail(ReaderDocument data)
         {
-            MailMessage message = new MailMessage("kindle@sendtoreader.cloudapp.net", emailAddress, "Send To Reader - Conversion Failed", "We're sorry, but the website you submitted could not be converted to Kindle format. Please try your submission again at http://sendtoreader.cloudapp.net.");
+            string subject = "Send To Reader - Conversion Failed";
 
-            //Send the message.
+            MailMessage message = new MailMessage("Send To Reader <kindle@sendtoreader.cloudapp.net>", data.EmailAddress, subject, data.URL + "\n\nWe're sorry, but the website you submitted could not be converted to Kindle format. Please try your submission again at http://sendtoreader.cloudapp.net.");
+
             SmtpClient client = new SmtpClient("smtp.sendgrid.net");
 
-            // Add credentials if the SMTP server requires them.
             string username = CloudConfigurationManager.GetSetting("SendGridUsername");
             string password = CloudConfigurationManager.GetSetting("SendGridPassword");
 
