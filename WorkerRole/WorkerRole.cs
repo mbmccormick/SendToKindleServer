@@ -168,7 +168,7 @@ namespace WorkerRole
             if (data.EmailAddress.EndsWith("@kindle.com") == true)
                 subject = "convert";
 
-            MailMessage message = new MailMessage("Send To Reader <kindle@sendtoreader.cloudapp.net>", data.EmailAddress, subject, data.URL + "\n\nDocument sent using Send To Reader for Windows Phone. Check it out at http://sendtoreader.cloudapp.net.");
+            MailMessage message = new MailMessage("Send To Reader <kindle@sendtoreader.net>", data.EmailAddress, subject, data.URL + "\n\nDocument sent using Send To Reader for Windows Phone. Check it out at http://sendtoreader.net.");
 
             Attachment file = new Attachment(path, MediaTypeNames.Application.Octet);
             message.Attachments.Add(file);
@@ -189,7 +189,7 @@ namespace WorkerRole
         {
             string subject = "Send To Reader - Conversion Failed";
 
-            MailMessage message = new MailMessage("Send To Reader <kindle@sendtoreader.cloudapp.net>", data.EmailAddress, subject, data.URL + "\n\nWe're sorry, but the website you submitted could not be converted to Kindle format. Please try your submission again at http://sendtoreader.cloudapp.net.");
+            MailMessage message = new MailMessage("Send To Reader <kindle@sendtoreader.net>", data.EmailAddress, subject, data.URL + "\n\nWe're sorry, but the website you submitted could not be converted to Kindle format. Please try your submission again at http://sendtoreader.net.");
 
             SmtpClient client = new SmtpClient("smtp.sendgrid.net");
 
