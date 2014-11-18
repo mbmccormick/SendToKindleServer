@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30324.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerRole", "WorkerRole\WorkerRole.csproj", "{6D96F5BC-DAD6-4423-868D-FCB687EE6C43}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebRole", "WebRole\WebRole.csproj", "{CE14537D-696E-493D-935B-08FE562BD7C7}"
 EndProject
-Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "WindowsAzure", "WindowsAzure\WindowsAzure.ccproj", "{983C6D1C-FD96-49E3-978A-A87ED665E10E}"
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "WindowsAzure", "WindowsAzure\WindowsAzure.ccproj", "{221A2648-7A78-4386-8AAE-958BE7175B72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{CE14537D-696E-493D-935B-08FE562BD7C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE14537D-696E-493D-935B-08FE562BD7C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE14537D-696E-493D-935B-08FE562BD7C7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{983C6D1C-FD96-49E3-978A-A87ED665E10E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{983C6D1C-FD96-49E3-978A-A87ED665E10E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{983C6D1C-FD96-49E3-978A-A87ED665E10E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{983C6D1C-FD96-49E3-978A-A87ED665E10E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{221A2648-7A78-4386-8AAE-958BE7175B72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{221A2648-7A78-4386-8AAE-958BE7175B72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{221A2648-7A78-4386-8AAE-958BE7175B72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{221A2648-7A78-4386-8AAE-958BE7175B72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

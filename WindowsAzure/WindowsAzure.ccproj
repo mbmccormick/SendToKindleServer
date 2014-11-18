@@ -4,8 +4,8 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>2.3</ProductVersion>
-    <ProjectGuid>983c6d1c-fd96-49e3-978a-a87ed665e10e</ProjectGuid>
+    <ProductVersion>2.5</ProductVersion>
+    <ProjectGuid>221a2648-7a78-4386-8aae-958be7175b72</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>WindowsAzure</RootNamespace>
@@ -55,25 +55,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Profiles" />
     <Folder Include="WebRoleContent\" />
     <Folder Include="WorkerRoleContent\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="WebRoleContent\diagnostics.wadcfg">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="WorkerRoleContent\diagnostics.wadcfg">
-      <SubType>Content</SubType>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <PublishProfile Include="Profiles\sendtoreaderProduction.azurePubxml" />
+    <DiagnosticsConfiguration Include="WebRoleContent\diagnostics.wadcfgx" />
+    <DiagnosticsConfiguration Include="WorkerRoleContent\diagnostics.wadcfgx" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
-    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.3\</CloudExtensionsDir>
+    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.5\</CloudExtensionsDir>
   </PropertyGroup>
   <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
 </Project>
