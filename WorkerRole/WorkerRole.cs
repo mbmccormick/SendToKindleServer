@@ -10,7 +10,6 @@ using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Newtonsoft.Json;
-using TuesPechkin;
 using WorkerRole.Models;
 
 namespace WorkerRole
@@ -40,15 +39,8 @@ namespace WorkerRole
                         Trace.TraceInformation("Parsing document");
                         var response = ParseUrl(data.URL);
 
-                        Trace.TraceInformation("Converting document to PDF");
-                        var document = ConvertToPdf(response);
-
-                        string filename = FriendlyFilename(response.title) + ".pdf";
-                        if (File.Exists(filename) == true)
-                            File.Delete(filename);
-
-                        Trace.TraceInformation("Writing file to disk");
-                        File.WriteAllBytes(filename, document);
+                        Trace.TraceInformation("Converting document to MOBI");
+                        string filename = ConvertToMobi(response);
 
                         Trace.TraceInformation("Sending file to Kindle");
                         SendEmailToReader(data, filename);
@@ -106,7 +98,7 @@ namespace WorkerRole
             return data;
         }
 
-        private byte[] ConvertToPdf(ParseResponse response)
+        private string ConvertToHtml(ParseResponse response)
         {
             string style = "<style>body { font-size: 32px; line-height: 1.5em; font-family: Georgia, Times, serif; } h1 { line-height: 1.3em; }</style>\r\n\r\n";
             string title = "<h1>" + response.title + "</h1>\r\n\r\n";
@@ -118,38 +110,36 @@ namespace WorkerRole
                 meta = "";
             }
 
-            HtmlToPdfDocument document = new HtmlToPdfDocument
-            {
-                GlobalSettings =
-                {
-                    DocumentTitle = response.title,
-                    ImageQuality = 100,
-                    DPI = 1200,
-                    ImageDPI = 1200,
-                    Margins =
-                    {
-                        All = 0.5,
-                        Unit = Unit.Inches
-                    }
-                },
-                Objects =
-                {
-                    new ObjectSettings
-                    {
-                        HtmlText = style + title + meta + response.content,
-                        WebSettings =
-                        {
-                            PrintBackground = false,
-                            PrintMediaType = true
-                        }
-                    }
-                }
-            };
+            return style + title + meta + response.content;
+        }
 
-            IPechkin converter = Factory.Create();
-            byte[] data = converter.Convert(document);
+        private string ConvertToMobi(ParseResponse response)
+        {
+            string html = ConvertToHtml(response);
 
-            return data;
+            string htmlFilename = FriendlyFilename(response.title) + ".html";
+            if (File.Exists(htmlFilename) == true)
+                File.Delete(htmlFilename);
+
+            string mobiFilename = FriendlyFilename(response.title) + ".mobi";
+            if (File.Exists(mobiFilename) == true)
+                File.Delete(mobiFilename);
+
+            File.WriteAllText(htmlFilename, html);
+            
+            Process kindleGen = new Process();
+
+            kindleGen.StartInfo.UseShellExecute = false;
+            kindleGen.StartInfo.RedirectStandardOutput = true;
+            kindleGen.StartInfo.FileName = "kindlegen.exe";
+            kindleGen.StartInfo.Arguments = string.Format("\"{0}\"", htmlFilename);
+
+            kindleGen.Start();
+
+            var output = kindleGen.StandardOutput.ReadToEnd();
+            kindleGen.WaitForExit();
+
+            return mobiFilename;
         }
 
         private string FriendlyFilename(string filename)
