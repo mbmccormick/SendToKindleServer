@@ -3,13 +3,13 @@
   <Role name="WebRole">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.ServiceBus.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Microsoft.ServiceBus.ConnectionString" value="" />
     </ConfigurationSettings>
   </Role>
   <Role name="WorkerRole">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.ServiceBus.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Microsoft.ServiceBus.ConnectionString" value="" />
       <Setting name="ReadabilityAPIKey" value="" />
       <Setting name="SendGridUsername" value="" />
       <Setting name="SendGridPassword" value="" />

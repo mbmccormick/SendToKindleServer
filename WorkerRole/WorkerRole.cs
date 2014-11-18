@@ -39,7 +39,7 @@ namespace WorkerRole
                         Trace.TraceInformation("Parsing document");
                         var response = ParseUrl(data.URL);
 
-                        Trace.TraceInformation("Converting document to MOBI");
+                        Trace.TraceInformation("Converting document to Mobi format");
                         string filename = ConvertToMobi(response);
 
                         Trace.TraceInformation("Sending file to Kindle");
@@ -52,7 +52,7 @@ namespace WorkerRole
                     catch (Exception ex)
                     {
                         Trace.TraceError(ex.Message);
-                        message.Complete(); // message.Abandon();
+                        message.Complete();
 
                         Trace.TraceWarning("Sending error message to user");
                         SendErrorEmail(data);
@@ -100,18 +100,27 @@ namespace WorkerRole
 
         private string ConvertToHtml(ParseResponse response)
         {
-            string style = "<style>body { font-size: 32px; line-height: 1.5em; font-family: Georgia, Times, serif; } h1 { line-height: 1.3em; }</style>\r\n\r\n";
-            string title = "<h1>" + response.title + "</h1>\r\n\r\n";
-            string meta = "<i>" + Convert.ToDateTime(response.date_published).ToString("MMMM d, yyyy") + " by " + response.author + "</i><br /><br />\r\n\r\n";
+            string document =
+@"<!DOCTYPE html>
+<html><head>    <title>{0}</title>    <style>        body { font-size: 32px; line-height: 1.5em; font-family: Georgia, Times, serif; }        h1 { line-height: 1.3em; }        p { text-indent: 0; margin-top: 10px; }    </style></head>
+<body>
+    <h1>{0}</h1>
+    <i>{1}</i>
+    <br />
+    {2}
+</body>
+";
 
-            if (String.IsNullOrEmpty(response.date_published) == true ||
-                String.IsNullOrEmpty(response.author) == true)
-            {
-                meta = "";
-            }
+            string meta = "By " + response.author + " (" + response.domain + ") on " + Convert.ToDateTime(response.date_published).ToString("MMMM d, yyyy");
+            
+            if (String.IsNullOrEmpty(response.date_published) == true)
+                meta = "By " + response.author + " (" + response.domain + ")";
 
-            string html = String.Format("<html>\r\n<head>\r\n{0}\r\n</head>\r\n<body>{1}\r\n{2}\r\n{3}\r\n</body>\r\n</html>\r\n", style, title, meta, response.content);
+            if (String.IsNullOrEmpty(response.author) == true)
+                meta = Convert.ToDateTime(response.date_published).ToString("MMMM d, yyyy");
 
+            string html = String.Format(document, response.title, meta, response.content);
+            
             return html;
         }
 
