@@ -110,7 +110,9 @@ namespace WorkerRole
                 meta = "";
             }
 
-            return style + title + meta + response.content;
+            string html = String.Format("<html>\r\n<head>\r\n{0}\r\n</head>\r\n<body>{1}\r\n{2}\r\n{3}\r\n</body>\r\n</html>\r\n", style, title, meta, response.content);
+
+            return html;
         }
 
         private string ConvertToMobi(ParseResponse response)
