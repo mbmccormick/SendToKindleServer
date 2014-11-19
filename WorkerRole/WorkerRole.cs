@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -6,6 +7,7 @@ using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
 using System.Threading;
+using HtmlAgilityPack;
 using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -39,18 +41,34 @@ namespace WorkerRole
                         Trace.TraceInformation("Parsing document");
                         var response = ParseUrl(data.URL);
 
+                        string folder = Guid.NewGuid().ToString();
+                        if (Directory.Exists(folder) == true)
+                            Directory.Delete(folder, true);
+
+                        Directory.CreateDirectory(folder);
+
                         Trace.TraceInformation("Converting document to Mobi format");
-                        string filename = ConvertToMobi(response);
+                        string filename = ConvertToMobi(folder, response);
 
                         Trace.TraceInformation("Sending file to Kindle");
                         SendEmailToReader(data, filename);
 
                         message.Complete();
 
+                        if (Debugger.IsAttached == false)
+                        {
+                            Trace.TraceInformation("Cleaning up");
+                            if (Directory.Exists(folder) == true)
+                                Directory.Delete(folder, true);
+                        }
+
                         Trace.TraceInformation("Completed success");
                     }
                     catch (Exception ex)
                     {
+                        if (Debugger.IsAttached == true)
+                            Debugger.Break();
+
                         Trace.TraceError(ex.Message);
                         message.Complete();
 
@@ -98,46 +116,20 @@ namespace WorkerRole
             return data;
         }
 
-        private string ConvertToHtml(ParseResponse response)
+        private string ConvertToMobi(string folder, ParseResponse response)
         {
-            string document =
-@"<!DOCTYPE html>
-<html><head>    <title>{0}</title>    <style>        body { font-size: 32px; line-height: 1.5em; font-family: Georgia, Times, serif; }        h1 { line-height: 1.3em; }        p { text-indent: 0; margin-top: 10px; }    </style></head>
-<body>
-    <h1>{0}</h1>
-    <i>{1}</i>
-    <br />
-    {2}
-</body>
-";
+            string html = ConvertToHtml(folder, response);
 
-            string meta = "By " + response.author + " (" + response.domain + ") on " + Convert.ToDateTime(response.date_published).ToString("MMMM d, yyyy");
-            
-            if (String.IsNullOrEmpty(response.date_published) == true)
-                meta = "By " + response.author + " (" + response.domain + ")";
-
-            if (String.IsNullOrEmpty(response.author) == true)
-                meta = Convert.ToDateTime(response.date_published).ToString("MMMM d, yyyy");
-
-            string html = String.Format(document, response.title, meta, response.content);
-            
-            return html;
-        }
-
-        private string ConvertToMobi(ParseResponse response)
-        {
-            string html = ConvertToHtml(response);
-
-            string htmlFilename = FriendlyFilename(response.title) + ".html";
+            string htmlFilename = folder + "\\" + FriendlyFilename(response.title) + ".html";
             if (File.Exists(htmlFilename) == true)
                 File.Delete(htmlFilename);
 
-            string mobiFilename = FriendlyFilename(response.title) + ".mobi";
+            string mobiFilename = folder + "\\" + FriendlyFilename(response.title) + ".mobi";
             if (File.Exists(mobiFilename) == true)
                 File.Delete(mobiFilename);
 
             File.WriteAllText(htmlFilename, html);
-            
+
             Process kindleGen = new Process();
 
             kindleGen.StartInfo.UseShellExecute = false;
@@ -151,6 +143,53 @@ namespace WorkerRole
             kindleGen.WaitForExit();
 
             return mobiFilename;
+        }
+
+        private string ConvertToHtml(string folder, ParseResponse response)
+        {
+            string document =
+@"<!DOCTYPE html>
+<html><head>    <title>{0}</title>    <style>        body {{ font-size: 32px; line-height: 1.5em; font-family: Georgia, Times, serif; }}        h1 {{ line-height: 1.3em; }}        p {{ text-indent: 0; margin-top: 32px; }}    </style></head>
+<body>
+    <h1>{0}</h1>
+    <i>{1}</i>
+    <br />
+    {2}
+</body>
+";
+
+            string meta = "By " + response.author + " on " + Convert.ToDateTime(response.date_published).ToString("MMMM d, yyyy") + " from " + response.domain;
+
+            if (String.IsNullOrEmpty(response.date_published) == true ||
+                Convert.ToDateTime(response.date_published) == DateTime.MinValue)
+                meta = "By " + response.author + " from " + response.domain;
+
+            if (String.IsNullOrEmpty(response.author) == true)
+                meta = Convert.ToDateTime(response.date_published).ToString("MMMM d, yyyy") + " from " + response.domain;
+
+            string html = String.Format(document, response.title, meta, response.content);
+
+            html = DownloadImagesAndReferenceLocally(folder, html);
+
+            return html;
+        }
+
+        private string DownloadImagesAndReferenceLocally(string folder, string html)
+        {
+            HtmlDocument document = new HtmlDocument();
+            document.LoadHtml(html);
+
+            foreach (HtmlNode node in document.DocumentNode.Descendants("img"))
+            {
+                string filename = System.IO.Path.GetFileName(new Uri(node.Attributes["src"].Value).LocalPath);
+
+                WebClient client = new WebClient();
+                client.DownloadFile(node.Attributes["src"].Value, folder + "\\" + filename);
+
+                node.Attributes["src"].Value = filename;
+            }
+
+            return document.DocumentNode.OuterHtml;
         }
 
         private string FriendlyFilename(string filename)
