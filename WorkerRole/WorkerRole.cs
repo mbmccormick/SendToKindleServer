@@ -29,7 +29,7 @@ namespace WorkerRole
                 Thread.Sleep(15000);
                 Trace.TraceInformation("Waking up");
 
-                BrokeredMessage message = QueueConnector.QueueClient.Receive();
+                BrokeredMessage message = QueueConnector.QueueClient.Receive(new TimeSpan(0, 0, 3));
 
                 if (message != null)
                 {
@@ -149,12 +149,21 @@ namespace WorkerRole
         {
             string document =
 @"<!DOCTYPE html>
-<html><head>    <title>{0}</title>    <style>        body {{ font-size: 32px; line-height: 1.5em; font-family: Georgia, Times, serif; }}        h1 {{ line-height: 1.3em; }}        p {{ text-indent: 0; margin-top: 32px; }}    </style></head>
+<html>
+<head>
+    <title>{0}</title>
+    <meta name=""author"" content=""{1}"" />
+    <style>
+        body {{ font-family: Georgia, Times, serif; }}
+        h1 {{ margin: 0px 0px 20px 0px; }}
+        p {{ text-indent: 0; margin-top: 15px; }}
+    </style>
+</head>
 <body>
     <h1>{0}</h1>
-    <i>{1}</i>
+    <i>{2}</i>
     <br />
-    {2}
+    {3}
 </body>
 ";
 
@@ -167,7 +176,12 @@ namespace WorkerRole
             if (String.IsNullOrEmpty(response.author) == true)
                 meta = Convert.ToDateTime(response.date_published).ToString("MMMM d, yyyy") + " from " + response.domain;
 
-            string html = String.Format(document, response.title, meta, response.content);
+            if ((String.IsNullOrEmpty(response.date_published) == true ||
+                 Convert.ToDateTime(response.date_published) == DateTime.MinValue) &&
+                String.IsNullOrEmpty(response.author) == true)
+                meta = "";
+
+            string html = String.Format(document, response.title, response.author, meta, response.content);
 
             html = DownloadImagesAndReferenceLocally(folder, html);
 
