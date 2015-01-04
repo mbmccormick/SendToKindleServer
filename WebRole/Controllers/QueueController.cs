@@ -12,13 +12,11 @@ namespace WebRole.Controllers
         {
             ViewBag.MessageCount = QueueConnector.GetQueue().MessageCount;
 
-            BrokeredMessage message = QueueConnector.QueueClient.Receive(new TimeSpan(0, 0, 3));
-
-            while (message != null)
+            while (QueueConnector.QueueClient.Peek() != null)
             {
-                message.Complete();
+                BrokeredMessage message = QueueConnector.QueueClient.Receive();
 
-                message = QueueConnector.QueueClient.Receive(new TimeSpan(0, 0, 3));
+                message.Complete();
             }
 
             ViewBag.DeletedMessageCount = ViewBag.MessageCount - QueueConnector.GetQueue().MessageCount;

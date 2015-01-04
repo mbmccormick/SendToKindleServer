@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -29,10 +28,10 @@ namespace WorkerRole
                 Thread.Sleep(15000);
                 Trace.TraceInformation("Waking up");
 
-                BrokeredMessage message = QueueConnector.QueueClient.Receive(new TimeSpan(0, 0, 3));
-
-                if (message != null)
+                if (QueueConnector.QueueClient.Peek() != null)
                 {
+                    BrokeredMessage message = QueueConnector.QueueClient.Receive();
+                                                        
                     Trace.TraceInformation("Processing " + message.SequenceNumber.ToString());
                     ReaderDocument data = message.GetBody<ReaderDocument>();
 
@@ -70,7 +69,7 @@ namespace WorkerRole
                             Debugger.Break();
 
                         Trace.TraceError(ex.Message);
-                        message.Complete();
+                        message.DeadLetter(ex.Message, ex.ToString());
 
                         Trace.TraceWarning("Sending error message to user");
                         SendErrorEmail(data);

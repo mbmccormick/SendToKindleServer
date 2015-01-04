@@ -8,7 +8,7 @@ namespace WebRole.Controllers
     {
         public ActionResult Index()
         {
-            ViewBag.MessageCount = QueueConnector.GetQueue().MessageCount;
+            ViewBag.MessageCount = QueueConnector.GetQueue().MessageCountDetails.ActiveMessageCount;
 
             return View();
         }
