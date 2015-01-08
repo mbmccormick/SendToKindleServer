@@ -30,51 +30,54 @@ namespace WorkerRole
 
                 if (QueueConnector.QueueClient.Peek() != null)
                 {
-                    BrokeredMessage message = QueueConnector.QueueClient.Receive();
-                                                        
-                    Trace.TraceInformation("Processing " + message.SequenceNumber.ToString());
-                    ReaderDocument data = message.GetBody<ReaderDocument>();
+                    BrokeredMessage message = QueueConnector.QueueClient.Receive(new TimeSpan(0, 0, 3));
 
-                    try
+                    if (message != null)
                     {
-                        Trace.TraceInformation("Parsing document");
-                        var response = ParseUrl(data.URL);
+                        Trace.TraceInformation("Processing " + message.SequenceNumber.ToString());
+                        ReaderDocument data = message.GetBody<ReaderDocument>();
 
-                        string folder = Guid.NewGuid().ToString();
-                        if (Directory.Exists(folder) == true)
-                            Directory.Delete(folder, true);
-
-                        Directory.CreateDirectory(folder);
-
-                        Trace.TraceInformation("Converting document to Mobi format");
-                        string filename = ConvertToMobi(folder, response);
-
-                        Trace.TraceInformation("Sending file to Kindle");
-                        SendEmailToReader(data, filename);
-
-                        message.Complete();
-
-                        if (Debugger.IsAttached == false)
+                        try
                         {
-                            Trace.TraceInformation("Cleaning up");
+                            Trace.TraceInformation("Parsing document");
+                            var response = ParseUrl(data.URL);
+
+                            string folder = Guid.NewGuid().ToString();
                             if (Directory.Exists(folder) == true)
                                 Directory.Delete(folder, true);
+
+                            Directory.CreateDirectory(folder);
+
+                            Trace.TraceInformation("Converting document to Mobi format");
+                            string filename = ConvertToMobi(folder, response);
+
+                            Trace.TraceInformation("Sending file to Kindle");
+                            SendEmailToReader(data, filename);
+
+                            message.Complete();
+
+                            if (Debugger.IsAttached == false)
+                            {
+                                Trace.TraceInformation("Cleaning up");
+                                if (Directory.Exists(folder) == true)
+                                    Directory.Delete(folder, true);
+                            }
+
+                            Trace.TraceInformation("Completed success");
                         }
+                        catch (Exception ex)
+                        {
+                            if (Debugger.IsAttached == true)
+                                Debugger.Break();
 
-                        Trace.TraceInformation("Completed success");
-                    }
-                    catch (Exception ex)
-                    {
-                        if (Debugger.IsAttached == true)
-                            Debugger.Break();
+                            Trace.TraceError(ex.Message);
+                            message.DeadLetter(ex.Message, ex.ToString());
 
-                        Trace.TraceError(ex.Message);
-                        message.DeadLetter(ex.Message, ex.ToString());
+                            Trace.TraceWarning("Sending error message to user");
+                            SendErrorEmail(data);
 
-                        Trace.TraceWarning("Sending error message to user");
-                        SendErrorEmail(data);
-
-                        Trace.TraceWarning("Completed failure");
+                            Trace.TraceWarning("Completed failure");
+                        }
                     }
                 }
 
