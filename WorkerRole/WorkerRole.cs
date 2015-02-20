@@ -65,13 +65,21 @@ namespace WorkerRole
 
                             Trace.TraceInformation("Completed success");
                         }
-                        catch (Exception ex)
+                        catch (Exception ex1)
                         {
                             if (Debugger.IsAttached == true)
                                 Debugger.Break();
 
-                            Trace.TraceError(ex.Message);
-                            message.DeadLetter(ex.Message, ex.ToString());
+                            Trace.TraceError(ex1.Message);
+
+                            try
+                            {
+                                message.DeadLetter(ex1.Message, ex1.ToString());
+                            }
+                            catch (Exception ex2)
+                            {
+                                Trace.TraceError(ex2.Message);
+                            }
 
                             Trace.TraceWarning("Sending error message to user");
                             SendErrorEmail(data);
